@@ -13,7 +13,7 @@
 SafayaMetaFix is a highly secure, next-generation web application designed to wipe EXIF data, GPS location tags, and device signatures from your video files. Whether you are a privacy advocate, a journalist, or just someone who values digital anonymity, this tool ensures your media is clean before you share it online.
 
 
-> `![SafayaMetaFix Home](.screenshot-home.png)`
+![SafayaMetaFix Home](./screenshot-home.png)
 
 ---
 
@@ -21,7 +21,7 @@ SafayaMetaFix is a highly secure, next-generation web application designed to wi
 Unlike traditional converters that force you to upload your personal files to a remote server, **SafayaMetaFix processes everything inside your browser.** Powered by **WebAssembly (WASM)** and a localized **FFmpeg Core Engine**, your files are loaded into a secure virtual container in your RAM. The engine scrambles internal file bit-depths to reset hash values and wipes all metadata tracking points. **No data ever leaves your device.**
 
 
-> `![SafayaMetaFix Dashboard](./screenshot-dashboard.png)`
+![SafayaMetaFix Dashboard](./screenshot-dashboard.png)
 
 ---
 
@@ -33,7 +33,7 @@ Unlike traditional converters that force you to upload your personal files to a 
 * **⚡ Lightning Fast:** Utilizes your device's own CPU/GPU power via WebAssembly.
 
 
-> `![SafayaMetaFix Blog](./screenshot-blog.png)`
+![SafayaMetaFix Blog](./screenshot-blog.png)
 
 ---
 
@@ -44,7 +44,7 @@ Using SafayaMetaFix is as simple as 1-2-3:
 3. **Export Ghost:** Once processing reaches 100%, click "Download Ghost File" to retrieve your untraceable video.
 
 
-> `![SafayaMetaFix Contact](./screenshot-contact.png)`
+![SafayaMetaFix Contact](./screenshot-contact.png)
 
 ---
 
