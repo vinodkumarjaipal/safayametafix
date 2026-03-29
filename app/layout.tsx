@@ -1,13 +1,19 @@
 // app/layout.tsx
 import './globals.css';
 import { ReactNode } from 'react';
+import Script from 'next/script'; // ✅ Analytics ke liye import
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 export const metadata = {
+  metadataBase: new URL('https://safayametafix.vercel.app'),
   title: 'SafayaMetaFix v1.0 | Quantum Video Privacy | Zero-Log Core',
   description: 'Wipe video metadata, inject perceptual noise, scramble file hashes, and bypass algorithmic tracking using local WebGPU processing.',
+  alternates: {
+    canonical: '/',
+  },
   verification: {
+    // ✅ Search Console Code
     google: '8K9QiHOKyqqWCSdpES_6gXKNys1TknXvjDQy1iy8hRY',
   },
 };
@@ -16,6 +22,21 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className="dark">
+      <head>
+        {/* ✅ Google Analytics Scripts */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-EQ30RE3G00"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-EQ30RE3G00');
+          `}
+        </Script>
+      </head>
       <body className="bg-[#030303] text-emerald-500 font-mono flex flex-col min-h-screen selection:bg-emerald-900 selection:text-white">
 
         {/* 1. NAVIGATION BAR */}
