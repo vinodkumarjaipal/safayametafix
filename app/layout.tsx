@@ -2,13 +2,17 @@
 import './globals.css';
 import { ReactNode } from 'react';
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer'; // ✅ Alag component se import
+import Footer from '../components/Footer';
 
 export const metadata = {
   title: 'SafayaMetaFix v1.0 | Quantum Video Privacy | Zero-Log Core',
   description: 'Wipe video metadata, inject perceptual noise, scramble file hashes, and bypass algorithmic tracking using local WebGPU processing.',
+  verification: {
+    google: '8K9QiHOKyqqWCSdpES_6gXKNys1TknXvjDQy1iy8hRY',
+  },
 };
 
+// ... (Baaki neeche ka aapka RootLayout function same rahega)
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className="dark">
