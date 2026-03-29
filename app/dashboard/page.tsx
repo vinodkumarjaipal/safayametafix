@@ -12,6 +12,10 @@ export default function DashboardPage() {
     const [logs, setLogs] = useState<string[]>([]);
     const [outputUrl, setOutputUrl] = useState<string | null>(null);
 
+    // Naye states Drag Drop aur Progress Phase ke liye
+    const [isDragging, setIsDragging] = useState(false);
+    const [processPhase, setProcessPhase] = useState<string>('');
+
     const ffmpegRef = useRef<any>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -43,11 +47,12 @@ export default function DashboardPage() {
         setLogs((prev) => [...prev.slice(-4), msg]);
     };
 
-    const handleProcessVideo = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
+    // Main function jo file process karega (Click se bhi aur Drop se bhi)
+    const processFile = async (file: File) => {
         if (!file) return;
 
         if (!isLoaded) {
+            setProcessPhase("LOADING ENGINE...");
             await loadFFmpeg();
         }
 
@@ -60,7 +65,10 @@ export default function DashboardPage() {
         addLog(`> Target Locked: ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)`);
 
         try {
+            setProcessPhase("UPLOADING TO CORE..."); // 1. Uploading phase
             await ffmpeg.writeFile('input.mp4', await fetchFile(file));
+
+            setProcessPhase("CLEANING METADATA..."); // 2. Cleaning phase
             addLog("> Initiating DNA Scramble and Metadata Wipe...");
 
             await ffmpeg.exec([
@@ -71,12 +79,14 @@ export default function DashboardPage() {
                 'output.mp4'
             ]);
 
+            setProcessPhase("FINALIZING GHOST FILE...");
             const data = await ffmpeg.readFile('output.mp4');
             const blob = new Blob([new Uint8Array(data as unknown as ArrayBuffer)], { type: 'video/mp4' });
             const url = URL.createObjectURL(blob);
 
             setOutputUrl(url);
             setIsProcessing(false);
+            setProcessPhase(""); // Reset
             addLog("> ✅ STATUS: SAFE TO DOWNLOAD.");
 
             await ffmpeg.deleteFile('input.mp4').catch(() => { });
@@ -86,7 +96,24 @@ export default function DashboardPage() {
             console.error("FFmpeg Error:", error);
             addLog("> ❌ ERROR: Mutation failed.");
             setIsProcessing(false);
+            setProcessPhase("");
         }
+    };
+
+    // Input Change Handler
+    const handleProcessVideo = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) processFile(file);
+    };
+
+    // Drag & Drop Handlers
+    const onDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
+    const onDragLeave = () => { setIsDragging(false); };
+    const onDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('video/')) processFile(file);
     };
 
     React.useEffect(() => {
@@ -116,11 +143,19 @@ export default function DashboardPage() {
                     <input id="safaya-video-upload" name="safaya-video-upload" type="file" accept="video/*" ref={fileInputRef} onChange={handleProcessVideo} className="hidden" />
 
                     {!isProcessing && !outputUrl && (
-                        <label htmlFor="safaya-video-upload" className="block border-4 border-dashed border-emerald-900/20 rounded-3xl p-12 md:p-20 text-center bg-emerald-950/5 hover:bg-emerald-900/10 transition-all cursor-pointer group hover:border-emerald-500/50 shadow-2xl">
-                            <div className="w-20 h-20 bg-emerald-900/20 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform mb-6 border border-emerald-800/30">
+                        <label
+                            htmlFor="safaya-video-upload"
+                            onDragOver={onDragOver}
+                            onDragLeave={onDragLeave}
+                            onDrop={onDrop}
+                            className={`block border-4 border-dashed rounded-3xl p-12 md:p-20 text-center transition-all cursor-pointer group shadow-2xl ${isDragging ? 'border-emerald-500 bg-emerald-900/20 scale-105' : 'border-emerald-900/20 bg-emerald-950/5 hover:bg-emerald-900/10 hover:border-emerald-500/50'}`}
+                        >
+                            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 border transition-all ${isDragging ? 'bg-emerald-500/20 border-emerald-500 animate-bounce' : 'bg-emerald-900/20 border-emerald-800/30 group-hover:scale-110'}`}>
                                 <ArrowDown className="text-emerald-500" />
                             </div>
-                            <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">Select Target Media</h3>
+                            <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">
+                                {isDragging ? "Drop Payload Here" : "Select Target Media"}
+                            </h3>
                             <p className="text-zinc-600 text-xs tracking-widest uppercase italic">MP4, MOV, WebM supported</p>
                         </label>
                     )}
@@ -128,7 +163,10 @@ export default function DashboardPage() {
                     {isProcessing && (
                         <div className="border border-emerald-950 rounded-3xl bg-black overflow-hidden font-mono shadow-[0_0_40px_rgba(16,185,129,0.1)]">
                             <div className="p-4 bg-emerald-950/20 border-b border-emerald-950 flex justify-between items-center">
-                                <span className="text-emerald-500 text-[10px] font-bold tracking-widest">EXECUTING_MUTATION.SH</span>
+                                {/* Yeh process phase dikhayega: Uploading, Cleaning etc. */}
+                                <span className="text-emerald-500 text-[10px] font-bold tracking-widest animate-pulse">
+                                    {processPhase || 'EXECUTING_MUTATION.SH'}
+                                </span>
                                 <span className="text-emerald-500 text-xs">{progress}%</span>
                             </div>
                             <div className="p-6 space-y-2 text-zinc-500 h-48 overflow-hidden flex flex-col justify-end">
@@ -192,7 +230,7 @@ export default function DashboardPage() {
                             <Lock className="text-emerald-500" size={24} />
                         </div>
                         <h4 className="text-white font-bold mb-3 tracking-tight uppercase">Export Ghost</h4>
-                        <p className="text-zinc-500 text-xs leading-relaxed font-mono">Retrieve your &rdquo;Ghost File&rdquo;. It is now mathematically distinct from the original and safe for distribution on any platform.</p>
+                        <p className="text-zinc-500 text-xs leading-relaxed font-mono">Retrieve your &quot;Ghost File&ldquo;. It is now mathematically distinct from the original and safe for distribution on any platform.</p>
                     </div>
                 </div>
             </section>

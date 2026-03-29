@@ -1,12 +1,38 @@
 // src/app/contact/page.tsx
-import React from 'react';
-
-export const metadata = {
-    title: 'Secure Contact | SafayaMetaFix',
-    description: 'Reach out to the SafayaMetaFix core team securely.',
-};
+"use client";
+import React, { useState } from 'react';
 
 export default function ContactPage() {
+    const [status, setStatus] = useState<string | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setStatus("SENDING...");
+
+        const form = e.currentTarget;
+        const data = new FormData(form);
+
+        try {
+            const response = await fetch("https://formspree.io/f/xqegpedb", {
+                method: "POST",
+                body: data,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                setStatus("SUCCESS");
+                form.reset();
+            } else {
+                setStatus("ERROR");
+            }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (error) {
+            setStatus("ERROR");
+        }
+    };
+
     return (
         <div className="max-w-5xl mx-auto py-10 pb-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
 
@@ -50,11 +76,13 @@ export default function ContactPage() {
                 {/* Decorative Grid */}
                 <div className="absolute inset-0 opacity-10 bg-[url('/grid.svg')] bg-center pointer-events-none"></div>
 
-                <form className="space-y-5 relative z-10">
+                <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
                     <div className="space-y-1.5">
                         <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Alias / Name</label>
                         <input
                             type="text"
+                            name="name"
+                            required
                             placeholder="Anonymous"
                             className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-lg p-3 focus:outline-none focus:border-emerald-500 transition-colors font-mono text-sm"
                         />
@@ -64,6 +92,8 @@ export default function ContactPage() {
                         <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Return Address (Email)</label>
                         <input
                             type="email"
+                            name="email"
+                            required
                             placeholder="protonmail@... or leave blank"
                             className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-lg p-3 focus:outline-none focus:border-emerald-500 transition-colors font-mono text-sm"
                         />
@@ -73,17 +103,28 @@ export default function ContactPage() {
                         <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Encrypted Payload (Message)</label>
                         <textarea
                             rows={5}
+                            name="message"
+                            required
                             placeholder="Enter your message here..."
                             className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-lg p-3 focus:outline-none focus:border-emerald-500 transition-colors font-mono text-sm resize-none"
                         ></textarea>
                     </div>
 
                     <button
-                        type="button"
-                        className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-lg transition-colors flex justify-center items-center gap-2 group"
+                        type="submit"
+                        disabled={status === "SENDING..."}
+                        className={`w-full py-4 font-black rounded-lg transition-colors flex justify-center items-center gap-2 group ${status === "SUCCESS" ? "bg-emerald-900 text-emerald-400" :
+                            status === "ERROR" ? "bg-red-900 text-red-400" :
+                                "bg-emerald-600 hover:bg-emerald-500 text-white"
+                            }`}
                     >
-                        TRANSMIT MESSAGE
-                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                        {status === "SENDING..." ? "TRANSMITTING..." :
+                            status === "SUCCESS" ? "PAYLOAD DELIVERED" :
+                                status === "ERROR" ? "TRANSMISSION FAILED" :
+                                    "TRANSMIT MESSAGE"}
+                        {status !== "SENDING..." && status !== "SUCCESS" && status !== "ERROR" && (
+                            <span className="group-hover:translate-x-1 transition-transform">→</span>
+                        )}
                     </button>
 
                     <p className="text-center text-[10px] text-zinc-600 uppercase tracking-widest mt-4">
