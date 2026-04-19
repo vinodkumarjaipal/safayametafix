@@ -148,16 +148,29 @@ export default function DashboardPage() {
             void loadFFmpegDependencies();
         };
 
+        let timeoutId: ReturnType<typeof setTimeout> | undefined;
+        let idleId: number | undefined;
+
         if ('requestIdleCallback' in window) {
-            const idleId = (window as Window & { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback(warmup, { timeout: 2500 });
-            return () => {
-                (window as Window & { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback?.(idleId);
+            const idleWindow = window as Window & {
+                requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number;
+                cancelIdleCallback?: (id: number) => void;
             };
+
+            idleId = idleWindow.requestIdleCallback(warmup, { timeout: 2500 });
+        } else {
+            timeoutId = setTimeout(warmup, 1200);
         }
 
-        const timeoutId = window.setTimeout(warmup, 1200);
         return () => {
-            window.clearTimeout(timeoutId);
+            if (idleId !== undefined) {
+                (window as Window & { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback?.(idleId);
+            }
+
+            if (timeoutId !== undefined) {
+                clearTimeout(timeoutId);
+            }
+
             if (outputUrl) URL.revokeObjectURL(outputUrl);
         };
     }, [outputUrl]);

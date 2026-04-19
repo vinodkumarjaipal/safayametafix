@@ -13,7 +13,7 @@ function generateNonce(): string {
     return btoa(binary);
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     const nonce = generateNonce();
     const reportEndpoint = '/api/csp-report';
     const devEvalDirective = process.env.NODE_ENV === 'production' ? '' : " 'unsafe-eval'";
