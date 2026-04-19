@@ -3,6 +3,8 @@ import './globals.css';
 import { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import Script from 'next/script'; // ✅ Analytics ke liye import
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -134,6 +136,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
         {/* 5. FOOTER (Contains Integrated Ad & Links) */}
         <Footer />
+        <Analytics />
+        <SpeedInsights />
 
       </body>
     </html>
