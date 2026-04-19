@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState, useRef } from 'react';
-import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile } from '@ffmpeg/util';
 import { Zap, Lock, Cpu, ArrowDown, CheckCircle2 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -16,12 +14,30 @@ export default function DashboardPage() {
     const [isDragging, setIsDragging] = useState(false);
     const [processPhase, setProcessPhase] = useState<string>('');
 
+    const ffmpegModuleRef = useRef<any>(null);
+    const fetchFileRef = useRef<any>(null);
     const ffmpegRef = useRef<any>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const loadFFmpegDependencies = async () => {
+        if (ffmpegModuleRef.current && fetchFileRef.current) {
+            return;
+        }
+
+        const [{ FFmpeg }, { fetchFile }] = await Promise.all([
+            import('@ffmpeg/ffmpeg'),
+            import('@ffmpeg/util'),
+        ]);
+
+        ffmpegModuleRef.current = FFmpeg;
+        fetchFileRef.current = fetchFile;
+    };
+
     const loadFFmpeg = async () => {
+        await loadFFmpegDependencies();
+
         if (!ffmpegRef.current) {
-            ffmpegRef.current = new FFmpeg();
+            ffmpegRef.current = new ffmpegModuleRef.current();
         }
 
         const ffmpeg = ffmpegRef.current;
@@ -66,7 +82,7 @@ export default function DashboardPage() {
 
         try {
             setProcessPhase("UPLOADING TO CORE..."); // 1. Uploading phase
-            await ffmpeg.writeFile('input.mp4', await fetchFile(file));
+            await ffmpeg.writeFile('input.mp4', await fetchFileRef.current(file));
 
             setProcessPhase("CLEANING METADATA..."); // 2. Cleaning phase
             addLog("> Initiating DNA Scramble and Metadata Wipe...");
@@ -116,8 +132,32 @@ export default function DashboardPage() {
         if (file && file.type.startsWith('video/')) processFile(file);
     };
 
+    const openFilePicker = () => {
+        fileInputRef.current?.click();
+    };
+
+    const onUploaderKeyDown = (e: React.KeyboardEvent<HTMLLabelElement>) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openFilePicker();
+        }
+    };
+
     React.useEffect(() => {
+        const warmup = () => {
+            void loadFFmpegDependencies();
+        };
+
+        if ('requestIdleCallback' in window) {
+            const idleId = (window as Window & { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback(warmup, { timeout: 2500 });
+            return () => {
+                (window as Window & { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback?.(idleId);
+            };
+        }
+
+        const timeoutId = window.setTimeout(warmup, 1200);
         return () => {
+            window.clearTimeout(timeoutId);
             if (outputUrl) URL.revokeObjectURL(outputUrl);
         };
     }, [outputUrl]);
@@ -139,19 +179,25 @@ export default function DashboardPage() {
                     </p>
                 </div>
 
+                <h2 className="sr-only">Video Metadata Scrubber Tool</h2>
+
                 <div className="max-w-2xl mx-auto">
-                    <input id="safaya-video-upload" name="safaya-video-upload" type="file" accept="video/*" ref={fileInputRef} onChange={handleProcessVideo} className="hidden" />
+                    <input id="safaya-video-upload" name="safaya-video-upload" type="file" accept="video/*" aria-label="Upload a video file to scrub metadata" ref={fileInputRef} onChange={handleProcessVideo} className="sr-only" />
 
                     {!isProcessing && !outputUrl && (
                         <label
                             htmlFor="safaya-video-upload"
+                            role="button"
+                            tabIndex={0}
+                            aria-label="Select or drop a video file for metadata scrubbing"
+                            onKeyDown={onUploaderKeyDown}
                             onDragOver={onDragOver}
                             onDragLeave={onDragLeave}
                             onDrop={onDrop}
                             className={`block border-4 border-dashed rounded-3xl p-12 md:p-20 text-center transition-all cursor-pointer group shadow-2xl ${isDragging ? 'border-emerald-500 bg-emerald-900/20 scale-105' : 'border-emerald-900/20 bg-emerald-950/5 hover:bg-emerald-900/10 hover:border-emerald-500/50'}`}
                         >
                             <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 border transition-all ${isDragging ? 'bg-emerald-500/20 border-emerald-500 animate-bounce' : 'bg-emerald-900/20 border-emerald-800/30 group-hover:scale-110'}`}>
-                                <ArrowDown className="text-emerald-500" />
+                                <ArrowDown className="text-emerald-500" aria-hidden="true" />
                             </div>
                             <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">
                                 {isDragging ? "Drop Payload Here" : "Select Target Media"}
@@ -183,12 +229,12 @@ export default function DashboardPage() {
                     {outputUrl && !isProcessing && (
                         <div className="text-center bg-emerald-950/10 border border-emerald-900/50 rounded-3xl p-12 space-y-6">
                             <div className="mx-auto w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center shadow-[0_0_20px_#10b981]">
-                                <CheckCircle2 className="text-black" size={32} />
+                                <CheckCircle2 className="text-black" size={32} aria-hidden="true" />
                             </div>
                             <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Mutation Successful</h3>
                             <div className="flex flex-col gap-3">
-                                <a href={outputUrl} download="safaya_ghost_file.mp4" className="px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl transition-all uppercase text-sm tracking-widest">Download Ghost File</a>
-                                <button onClick={() => { setOutputUrl(null); setLogs([]); }} className="text-zinc-600 hover:text-white text-[10px] uppercase tracking-widest">Process New Payload</button>
+                                <a href={outputUrl} aria-label="Download processed ghost video file" download="safaya_ghost_file.mp4" className="px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl transition-all uppercase text-sm tracking-widest">Download Ghost File</a>
+                                <button aria-label="Process a new video payload" onClick={() => { setOutputUrl(null); setLogs([]); }} className="text-zinc-600 hover:text-white text-[10px] uppercase tracking-widest">Process New Payload</button>
                             </div>
                         </div>
                     )}
@@ -207,7 +253,7 @@ export default function DashboardPage() {
                     <div className="relative p-8 bg-[#050505] border border-emerald-950 rounded-2xl group hover:border-emerald-500/30 transition-all">
                         <div className="absolute -top-4 left-8 px-3 py-1 bg-emerald-600 text-black text-[10px] font-black rounded-md tracking-widest">STEP_01</div>
                         <div className="w-12 h-12 bg-emerald-950/50 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                            <Cpu className="text-emerald-500" size={24} />
+                            <Cpu className="text-emerald-500" size={24} aria-hidden="true" />
                         </div>
                         <h4 className="text-white font-bold mb-3 tracking-tight uppercase">Inject Media</h4>
                         <p className="text-zinc-500 text-xs leading-relaxed font-mono">Select the video you want to scrub. The file is loaded into a secure WASM virtual container within your browser.</p>
@@ -217,7 +263,7 @@ export default function DashboardPage() {
                     <div className="relative p-8 bg-[#050505] border border-emerald-950 rounded-2xl group hover:border-emerald-500/30 transition-all">
                         <div className="absolute -top-4 left-8 px-3 py-1 bg-emerald-600 text-black text-[10px] font-black rounded-md tracking-widest">STEP_02</div>
                         <div className="w-12 h-12 bg-emerald-950/50 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                            <Zap className="text-emerald-500" size={24} />
+                            <Zap className="text-emerald-500" size={24} aria-hidden="true" />
                         </div>
                         <h4 className="text-white font-bold mb-3 tracking-tight uppercase">Scrub Engine</h4>
                         <p className="text-zinc-500 text-xs leading-relaxed font-mono">Our core engine wipes all EXIF data, GPS tags, and device signatures. It also scrambles internal file bit-depth to reset hash values.</p>
@@ -227,7 +273,7 @@ export default function DashboardPage() {
                     <div className="relative p-8 bg-[#050505] border border-emerald-950 rounded-2xl group hover:border-emerald-500/30 transition-all">
                         <div className="absolute -top-4 left-8 px-3 py-1 bg-emerald-600 text-black text-[10px] font-black rounded-md tracking-widest">STEP_03</div>
                         <div className="w-12 h-12 bg-emerald-950/50 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                            <Lock className="text-emerald-500" size={24} />
+                            <Lock className="text-emerald-500" size={24} aria-hidden="true" />
                         </div>
                         <h4 className="text-white font-bold mb-3 tracking-tight uppercase">Export Ghost</h4>
                         <p className="text-zinc-500 text-xs leading-relaxed font-mono">Retrieve your &quot;Ghost File&ldquo;. It is now mathematically distinct from the original and safe for distribution on any platform.</p>

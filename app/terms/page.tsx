@@ -31,6 +31,7 @@ export default function TermsPage() {
 
             {/* Content */}
             <div className="space-y-8 text-zinc-400 text-sm md:text-base leading-relaxed">
+                <h2 className="text-2xl font-bold text-white">Core Terms</h2>
 
                 <div className="space-y-2">
                     <h3 className="text-lg font-bold text-white">1. Provision of Service &quot;As Is&quot;</h3>

@@ -32,6 +32,7 @@ export default function Navbar() {
                             width="36"
                             height="36"
                             viewBox="0 0 24 24"
+                            aria-hidden="true"
                             fill="none"
                             stroke="#10b981"
                             strokeWidth="2"
@@ -80,21 +81,27 @@ export default function Navbar() {
                         <span className="absolute inset-0 w-full h-full border border-emerald-500/50 rounded-lg group-hover:border-emerald-400 transition-all"></span>
                         <span className="absolute inset-0 w-full h-full bg-emerald-500/10 rounded-lg blur-0 group-hover:blur-sm transition-all"></span>
                         <span className="relative flex items-center gap-2 group-hover:text-white">
-                            SAFE ZONE <Zap size={16} className="animate-pulse" />
+                            SAFE ZONE <Zap size={16} className="animate-pulse" aria-hidden="true" />
                         </span>
                     </Link>
                 </nav>
 
                 {/* Mobile Toggle */}
-                <button onClick={toggleMenu} className="md:hidden p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-all">
-                    {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+                <button
+                    onClick={toggleMenu}
+                    aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                    aria-expanded={isMenuOpen}
+                    aria-controls="mobile-navigation"
+                    className="md:hidden p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-all"
+                >
+                    {isMenuOpen ? <X size={28} aria-hidden="true" /> : <Menu size={28} aria-hidden="true" />}
                 </button>
             </header>
 
             {/* Mobile Menu with Slide-down Animation */}
             {isMenuOpen && (
                 <div className="fixed inset-0 z-90 md:hidden bg-black/95 backdrop-blur-xl pt-24 px-6 animate-in fade-in slide-in-from-top duration-300">
-                    <nav className="flex flex-col gap-8">
+                    <nav id="mobile-navigation" className="flex flex-col gap-8">
                         {navLinks.map((link) => (
                             <Link
                                 key={link.name}

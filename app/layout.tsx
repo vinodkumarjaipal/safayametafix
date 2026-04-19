@@ -1,16 +1,63 @@
 // app/layout.tsx
 import './globals.css';
 import { ReactNode } from 'react';
+import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import Script from 'next/script'; // ✅ Analytics ke liye import
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
-export const metadata = {
+const siteUrl = 'https://safayametafix.vercel.app';
+
+export const metadata: Metadata = {
   metadataBase: new URL('https://safayametafix.vercel.app'),
-  title: 'SafayaMetaFix v1.0 | Quantum Video Privacy | Zero-Log Core',
-  description: 'Wipe video metadata, inject perceptual noise, scramble file hashes, and bypass algorithmic tracking using local WebGPU processing.',
+  title: {
+    default: 'SafayaMetaFix | Remove Video Metadata Online Free',
+    template: '%s | SafayaMetaFix',
+  },
+  description:
+    'Remove video metadata online free with FFmpeg WASM. 100% client-side processing, zero uploads, zero server logs, and no account required.',
+  keywords: [
+    'remove video metadata online free',
+    'video metadata remover',
+    'ffmpeg wasm metadata remover',
+    'strip exif from video online',
+    'privacy first video tool',
+    'client side video processing',
+    'zero log video sanitizer',
+  ],
   alternates: {
-    canonical: '/',
+    canonical: siteUrl,
+  },
+  openGraph: {
+    type: 'website',
+    url: siteUrl,
+    siteName: 'SafayaMetaFix',
+    title: 'SafayaMetaFix | Remove Video Metadata Online Free',
+    description:
+      'Privacy-first FFmpeg WASM scrubber. Process videos locally in your browser with zero uploads and zero server logs.',
+    images: [
+      {
+        url: `${siteUrl}/opengraph-image.png`,
+        width: 1200,
+        height: 630,
+        alt: 'SafayaMetaFix privacy-first video metadata scrubber',
+      },
+      {
+        url: `${siteUrl}/og-image.jpg`,
+        width: 1200,
+        height: 630,
+        alt: 'SafayaMetaFix fallback Open Graph preview image',
+      },
+    ],
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SafayaMetaFix | Remove Video Metadata Online Free',
+    description:
+      '100% client-side FFmpeg WASM video metadata remover. No upload. No account. Zero server logs.',
+    images: [`${siteUrl}/twitter-image.png`, `${siteUrl}/twitter-image.jpg`],
   },
   verification: {
     // ✅ Search Console Code
@@ -19,21 +66,33 @@ export const metadata = {
 };
 
 // ... (Baaki neeche ka aapka RootLayout function same rahega)
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
+  const bingVerification = process.env.NEXT_PUBLIC_BING_WEBMASTER_VERIFICATION;
+
   return (
     <html lang="en" className="dark">
       <head>
+        {bingVerification ? (
+          <meta name="msvalidate.01" content={bingVerification} />
+        ) : null}
+
         {/* ✅ Google Analytics Scripts */}
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-EQ30RE3G00"
+          src="https://www.googletagmanager.com/gtag/js?id=G-R8LRJF7YYF"
+          nonce={nonce}
           strategy="afterInteractive"
         />
-        <Script id="google-analytics" strategy="afterInteractive">
+        <Script id="google-analytics" nonce={nonce} strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-EQ30RE3G00');
+            gtag('config', 'G-R8LRJF7YYF', {
+              anonymize_ip: true,
+              allow_google_signals: false,
+              allow_ad_personalization_signals: false
+            });
           `}
         </Script>
       </head>

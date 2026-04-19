@@ -46,11 +46,12 @@ export default function ContactPage() {
                         Establish <span className="text-emerald-500">Connection</span>
                     </h1>
                     <p className="text-zinc-400 leading-relaxed">
-                        Have a technical inquiry, bug report, or need enterprise-grade API access? Use the encrypted portal to reach our core development team. We do not track IPs on this form.
+                        Have a technical inquiry, bug report, or need enterprise-grade API access? Use the encrypted portal to reach our core development team. This form is delivered through Formspree, which may process request metadata for delivery and abuse prevention.
                     </p>
                 </div>
 
                 <div className="space-y-6">
+                    <h2 className="text-xl font-bold text-white">Secure Contact Channels</h2>
                     <div className="p-5 border border-zinc-900 bg-[#030303] rounded-xl flex items-center gap-4">
                         <div className="w-12 h-12 bg-emerald-950/50 flex items-center justify-center rounded-lg text-xl">📧</div>
                         <div>
@@ -78,10 +79,12 @@ export default function ContactPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
                     <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Alias / Name</label>
+                        <label htmlFor="contact-name" className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Alias / Name</label>
                         <input
+                            id="contact-name"
                             type="text"
                             name="name"
+                            aria-label="Alias or name"
                             required
                             placeholder="Anonymous"
                             className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-lg p-3 focus:outline-none focus:border-emerald-500 transition-colors font-mono text-sm"
@@ -89,10 +92,12 @@ export default function ContactPage() {
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Return Address (Email)</label>
+                        <label htmlFor="contact-email" className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Return Address (Email)</label>
                         <input
+                            id="contact-email"
                             type="email"
                             name="email"
+                            aria-label="Return email address"
                             required
                             placeholder="protonmail@... or leave blank"
                             className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-lg p-3 focus:outline-none focus:border-emerald-500 transition-colors font-mono text-sm"
@@ -100,10 +105,12 @@ export default function ContactPage() {
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Encrypted Payload (Message)</label>
+                        <label htmlFor="contact-message" className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Encrypted Payload (Message)</label>
                         <textarea
+                            id="contact-message"
                             rows={5}
                             name="message"
+                            aria-label="Encrypted payload message"
                             required
                             placeholder="Enter your message here..."
                             className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-lg p-3 focus:outline-none focus:border-emerald-500 transition-colors font-mono text-sm resize-none"
@@ -112,6 +119,7 @@ export default function ContactPage() {
 
                     <button
                         type="submit"
+                        aria-label="Transmit message"
                         disabled={status === "SENDING..."}
                         className={`w-full py-4 font-black rounded-lg transition-colors flex justify-center items-center gap-2 group ${status === "SUCCESS" ? "bg-emerald-900 text-emerald-400" :
                             status === "ERROR" ? "bg-red-900 text-red-400" :
